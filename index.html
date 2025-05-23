@@ -1,83 +1,176 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>لوحة تحكم الأدمن</title>
-  <style>
-    body {
-      background-color: #000;
-      color: #fff;
-      font-family: 'Cairo', sans-serif;
-      padding: 20px;
-    }
-    h1 {
-      color: #f00;
-      text-align: center;
-    }
-    .request-box {
-      background-color: #111;
-      border: 1px solid #f00;
-      margin: 15px 0;
-      padding: 10px;
-      border-radius: 10px;
-    }
-    .request-box button {
-      background-color: #f00;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      margin-top: 10px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>لوحة تحكم الأدمن</title>
+<style>
+  body {
+    margin: 0; padding: 0; background: #000;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #eee;
+  }
+  header {
+    background: #1a0000;
+    padding: 15px;
+    text-align: center;
+    color: #ff0000;
+    font-size: 1.8em;
+    font-weight: bold;
+    letter-spacing: 2px;
+  }
+  section {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 10px;
+  }
+  h2 {
+    color: #ff3300;
+    border-bottom: 2px solid #ff3300;
+    padding-bottom: 6px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: #111;
+  }
+  th, td {
+    padding: 10px 8px;
+    border: 1px solid #333;
+    text-align: center;
+  }
+  th {
+    background: #440000;
+    color: #ff4d4d;
+  }
+  tbody tr:nth-child(even) {
+    background: #222;
+  }
+  tbody tr:hover {
+    background: #330000;
+  }
+  footer {
+    text-align: center;
+    margin: 40px 0 20px 0;
+    color: #666;
+    font-size: 14px;
+  }
+  /* Scroll for tables */
+  .table-container {
+    overflow-x: auto;
+  }
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js"></script>
 </head>
 <body>
-  <h1>لوحة التحكم - الطلبات</h1>
-  <div id="requests"></div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+<header>لوحة تحكم الأدمن - استقبل الطلبات</header>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCuP6VscPxkQS5D5z7bCYWXijzaYCdbF2s",
-      authDomain: "starkoscript.firebaseapp.com",
-      databaseURL: "https://starkoscript-default-rtdb.firebaseio.com",
-      projectId: "starkoscript",
-      storageBucket: "starkoscript.appspot.com",
-      messagingSenderId: "381525854892",
-      appId: "1:381525854892:android:50ba5daa1cffae8faa2d09"
-    };
+<section>
+  <h2>طلبات الباقات</h2>
+  <div class="table-container">
+    <table id="packageRequestsTable">
+      <thead>
+        <tr>
+          <th>رقم الهاتف</th>
+          <th>اسم الباقة</th>
+          <th>كلمة المرور</th>
+          <th>تاريخ الطلب</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+<section>
+  <h2>طلبات شحن الرصيد الصافي</h2>
+  <div class="table-container">
+    <table id="balanceRequestsTable">
+      <thead>
+        <tr>
+          <th>رقم الهاتف</th>
+          <th>المبلغ (صافي)</th>
+          <th>السعر بالجنيه</th>
+          <th>تاريخ الطلب</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
 
-    const requestsRef = ref(db, 'requests');
-    const requestsDiv = document.getElementById('requests');
+<footer>© 2025 Ahmed - All Rights Reserved</footer>
 
-    onValue(requestsRef, (snapshot) => {
-      requestsDiv.innerHTML = '';
-      snapshot.forEach((child) => {
-        const data = child.val();
-        const div = document.createElement('div');
-        div.className = 'request-box';
-        div.innerHTML = `
-          <strong>الخدمة:</strong> ${data.service}<br>
-          <strong>الرقم:</strong> ${data.num}<br>
-          ${data.pass ? `<strong>كلمة السر:</strong> ${data.pass}<br>` : ''}
-          ${data.balance ? `<strong>الرصيد المطلوب:</strong> ${data.balance}<br>` : ''}
-          <button onclick="removeRequest('${child.key}')">تم التنفيذ</button>
-        `;
-        requestsDiv.appendChild(div);
-      });
+<script>
+  // Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCuP6VscPxkQS5D5z7bCYWXijzaYCdbF2s",
+    authDomain: "starkoscript.firebaseapp.com",
+    databaseURL: "https://starkoscript-default-rtdb.firebaseio.com",
+    projectId: "starkoscript",
+    storageBucket: "starkoscript.appspot.com",
+    messagingSenderId: "381525854892",
+    appId: "1:381525854892:android:50ba5daa1cffae8faa2d09"
+  };
+
+  // Initialize Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  // References to tables body
+  const packageTableBody = document.querySelector('#packageRequestsTable tbody');
+  const balanceTableBody = document.querySelector('#balanceRequestsTable tbody');
+
+  // Clear tables
+  packageTableBody.innerHTML = '';
+  balanceTableBody.innerHTML = '';
+
+  // Fetch data from Firebase realtime database
+  const requestsRef = db.ref('users');
+
+  requestsRef.on('value', snapshot => {
+    packageTableBody.innerHTML = '';
+    balanceTableBody.innerHTML = '';
+
+    const data = snapshot.val();
+    if (!data) return;
+
+    // Sort entries by timestamp descending
+    const entries = Object.entries(data).sort((a,b) => {
+      return b[1].timestamp - a[1].timestamp;
     });
 
-    window.removeRequest = function(id) {
-      const reqRef = ref(db, 'requests/' + id);
-      remove(reqRef);
-    };
-  </script>
+    entries.forEach(([key, value]) => {
+      const date = new Date(value.timestamp);
+      const dateString = date.toLocaleString('ar-EG', {hour12:false});
+
+      if(value.type === "باقة"){
+        // Add row to package table
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${value.number || ''}</td>
+          <td>${value.packageName || ''}</td>
+          <td>${value.password ? '••••••' : ''}</td>
+          <td>${dateString}</td>
+        `;
+        packageTableBody.appendChild(tr);
+      } else if(value.type === "رصيد"){
+        // Add row to balance table
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${value.number || ''}</td>
+          <td>${value.amount || ''}</td>
+          <td>${value.price || ''}</td>
+          <td>${dateString}</td>
+        `;
+        balanceTableBody.appendChild(tr);
+      }
+    });
+  });
+</script>
+
 </body>
 </html>
